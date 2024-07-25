@@ -12,7 +12,7 @@ import (
 
 func main() {
 	image := LoadImage()
-	resizeImage := ResizeImage(image, 300)
+	resizeImage := ResizeImage(image, 200)
 
 	file, err := os.Create("logo.png")
 	if err != nil {
@@ -34,14 +34,14 @@ func main() {
 	png.Encode(grayFile, grayImage)
 
 	resultStr := MapAscii(grayImage)
-	fmt.Print(resultStr)
+	fmt.Printf("MapAscii returned %d lines\n", len(resultStr))
 
 	saveToFile(resultStr, "result.txt")
 
 }
 func LoadImage() image.Image {
 
-	file, err := os.Open("test.png")
+	file, err := os.Open("me.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
 	}
@@ -76,12 +76,12 @@ func ConvGrayScale(img image.Image) image.Image {
 	for i := bound.Min.X; i < bound.Max.X; i++ {
 		for j := bound.Min.Y; j < bound.Max.Y; j++ {
 			oldPixel := img.At(i, j)
-			color := color.GrayModel.Convert(oldPixel)
-			// fmt.Print(color)
-			// r, g, b, _ := oldPixel.RGBA()
+			// color := color.GrayModel.Convert(oldPixel)
+			// // fmt.Print(color)
+			r, g, b, _ := oldPixel.RGBA()
 
-			// grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
-			// color := color.Gray{uint8(grayValue / 256)}
+			grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
+			color := color.Gray{uint8(grayValue / 256)}
 			grayImage.Set(i, j, color)
 
 		}
@@ -91,7 +91,10 @@ func ConvGrayScale(img image.Image) image.Image {
 }
 
 func MapAscii(img image.Image) []string {
-	asciiChar := " $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+	asciiChar := "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft|()1{}[]?-_+~<>i!lI;:, "
+	// asciiChar := ".`'^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+	// asciiChar := " .:-=+*#%@"
+	fmt.Printf("the value is %v\n", len(asciiChar))
 
 	bound := img.Bounds()
 	height, width := bound.Max.Y, bound.Max.X
@@ -103,7 +106,12 @@ func MapAscii(img image.Image) []string {
 			// pixel := img.At(x, y)
 			pixelValue := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
 			pixel := pixelValue.Y
-			asciiIndex := pixel * (uint8(len(asciiChar) - 1)) / 255
+			fmt.Print(pixel)
+			// asciiIndex := (pixel * (uint8(len(asciiChar) - 1))) / 255
+			asciiIndex := int(pixel) * (len(asciiChar) - 1) / 255
+
+			fmt.Print(asciiIndex)
+			fmt.Println()
 			line += string(asciiChar[asciiIndex])
 
 		}
