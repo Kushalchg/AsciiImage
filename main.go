@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/png"
 	"os"
 
@@ -11,7 +12,7 @@ import (
 
 func main() {
 	image := LoadImage()
-	resizeImage := ResizeImage(image, 3000)
+	resizeImage := ResizeImage(image, 300)
 
 	file, err := os.Create("logo.png")
 	if err != nil {
@@ -20,6 +21,22 @@ func main() {
 	}
 	defer file.Close()
 	png.Encode(file, resizeImage)
+
+	grayImage := ConvGrayScale(resizeImage)
+	// gor gray image
+	grayFile, err := os.Create("gray.png")
+	if err != nil {
+		fmt.Printf("error while opening file %v\n", err)
+
+	}
+	defer file.Close()
+
+	png.Encode(grayFile, grayImage)
+
+	resultStr := MapAscii(grayImage)
+	fmt.Print(resultStr)
+
+	saveToFile(resultStr, "result.txt")
 
 }
 func LoadImage() image.Image {
@@ -39,19 +56,76 @@ func LoadImage() image.Image {
 
 }
 
-// func ResizeImage(img image.Image, width int) image.Image {
-// 	bound := img.Bounds()
-// 	height := (bound.Dy() * width) / bound.Dx()
-// 	newImage := image.NewRGBA(image.Rect(0, 0, height, width))
-// 	draw.Draw(newImage, newImage.Bounds(), img, img.Bounds().Size(), draw.Src)
-// 	return newImage
-
-// }
 func ResizeImage(img image.Image, width int) image.Image {
 	bounds := img.Bounds()
 	height := (bounds.Dy() * width) / bounds.Dx()
 
 	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	// Resize the mask image to match the target dimensions
 	draw.CatmullRom.Scale(newImage, newImage.Bounds(), img, bounds, draw.Over, nil)
+
 	return newImage
+}
+
+func ConvGrayScale(img image.Image) image.Image {
+	bound := img.Bounds()
+
+	grayImage := image.NewRGBA(bound)
+
+	for i := bound.Min.X; i < bound.Max.X; i++ {
+		for j := bound.Min.Y; j < bound.Max.Y; j++ {
+			oldPixel := img.At(i, j)
+			color := color.GrayModel.Convert(oldPixel)
+			// fmt.Print(color)
+			// r, g, b, _ := oldPixel.RGBA()
+
+			// grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
+			// color := color.Gray{uint8(grayValue / 256)}
+			grayImage.Set(i, j, color)
+
+		}
+	}
+
+	return grayImage
+}
+
+func MapAscii(img image.Image) []string {
+	asciiChar := " $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+
+	bound := img.Bounds()
+	height, width := bound.Max.Y, bound.Max.X
+	result := make([]string, height)
+
+	for y := bound.Min.Y; y < height; y++ {
+		line := ""
+		for x := bound.Min.X; x < width; x++ {
+			// pixel := img.At(x, y)
+			pixelValue := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
+			pixel := pixelValue.Y
+			asciiIndex := pixel * (uint8(len(asciiChar) - 1)) / 255
+			line += string(asciiChar[asciiIndex])
+
+		}
+		result[y] = line
+
+	}
+	return result
+}
+
+func saveToFile(asciiArt []string, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, line := range asciiArt {
+		_, err := file.WriteString(line + "\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
