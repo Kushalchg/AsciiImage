@@ -14,7 +14,7 @@ func main() {
 	image := LoadImage()
 	resizeImage := ResizeImage(image, 200)
 
-	file, err := os.Create("logo.png")
+	file, err := os.Create("resize.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
 
@@ -23,7 +23,7 @@ func main() {
 	png.Encode(file, resizeImage)
 
 	grayImage := ConvGrayScale(resizeImage)
-	// gor gray image
+	// for gray image
 	grayFile, err := os.Create("gray.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
@@ -32,10 +32,8 @@ func main() {
 	defer file.Close()
 
 	png.Encode(grayFile, grayImage)
-
 	resultStr := MapAscii(grayImage)
 	fmt.Printf("MapAscii returned %d lines\n", len(resultStr))
-
 	saveToFile(resultStr, "result.txt")
 
 }
@@ -76,12 +74,12 @@ func ConvGrayScale(img image.Image) image.Image {
 	for i := bound.Min.X; i < bound.Max.X; i++ {
 		for j := bound.Min.Y; j < bound.Max.Y; j++ {
 			oldPixel := img.At(i, j)
-			// color := color.GrayModel.Convert(oldPixel)
+			color := color.GrayModel.Convert(oldPixel)
 			// // fmt.Print(color)
-			r, g, b, _ := oldPixel.RGBA()
+			// r, g, b, _ := oldPixel.RGBA()
 
-			grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
-			color := color.Gray{uint8(grayValue / 256)}
+			// grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
+			// color := color.Gray{uint8(grayValue / 256)}
 			grayImage.Set(i, j, color)
 
 		}
@@ -91,11 +89,8 @@ func ConvGrayScale(img image.Image) image.Image {
 }
 
 func MapAscii(img image.Image) []string {
-	asciiChar := "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft|()1{}[]?-_+~<>i!lI;:, "
 	// asciiChar := ".`'^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
-	// asciiChar := " .:-=+*#%@"
-	fmt.Printf("the value is %v\n", len(asciiChar))
-
+	asciiChar := "$@B%#*+=,.      "
 	bound := img.Bounds()
 	height, width := bound.Max.Y, bound.Max.X
 	result := make([]string, height)
@@ -103,11 +98,9 @@ func MapAscii(img image.Image) []string {
 	for y := bound.Min.Y; y < height; y++ {
 		line := ""
 		for x := bound.Min.X; x < width; x++ {
-			// pixel := img.At(x, y)
 			pixelValue := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
 			pixel := pixelValue.Y
 			fmt.Print(pixel)
-			// asciiIndex := (pixel * (uint8(len(asciiChar) - 1))) / 255
 			asciiIndex := int(pixel) * (len(asciiChar) - 1) / 255
 
 			fmt.Print(asciiIndex)
