@@ -14,17 +14,16 @@ func main() {
 	image := LoadImage()
 	resizeImage := ResizeImage(image, 200)
 
-	file, err := os.Create("resize.png")
+	file, err := os.Create("output/resize.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
-
 	}
 	defer file.Close()
 	png.Encode(file, resizeImage)
 
 	grayImage := ConvGrayScale(resizeImage)
 	// for gray image
-	grayFile, err := os.Create("gray.png")
+	grayFile, err := os.Create("output/gray.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
 
@@ -33,13 +32,12 @@ func main() {
 
 	png.Encode(grayFile, grayImage)
 	resultStr := MapAscii(grayImage)
-	fmt.Printf("MapAscii returned %d lines\n", len(resultStr))
-	saveToFile(resultStr, "result.txt")
+	saveToFile(resultStr, "output/result.txt")
 
 }
 func LoadImage() image.Image {
 
-	file, err := os.Open("me.png")
+	file, err := os.Open("output/me.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
 	}
@@ -100,11 +98,7 @@ func MapAscii(img image.Image) []string {
 		for x := bound.Min.X; x < width; x++ {
 			pixelValue := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
 			pixel := pixelValue.Y
-			fmt.Print(pixel)
 			asciiIndex := int(pixel) * (len(asciiChar) - 1) / 255
-
-			fmt.Print(asciiIndex)
-			fmt.Println()
 			line += string(asciiChar[asciiIndex])
 
 		}
@@ -130,3 +124,27 @@ func saveToFile(asciiArt []string, filename string) error {
 
 	return nil
 }
+
+func AsciiToImage(ascii []string) {
+
+	// make tha ractangle with dimensions
+	// loop over the height of the image and width of maximum line
+
+}
+
+// func SampleImage() {
+// 	SampleImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
+// 	SampleImage.Set(0, 0, color.RGBA{255, 0, 0, 255})
+// 	SampleImage.Set(1, 0, color.RGBA{0, 0, 255, 255})
+// 	SampleImage.Set(0, 1, color.RGBA{0, 255, 0, 255})
+// 	SampleImage.Set(1, 1, color.RGBA{0, 0, 0, 255})
+
+// 	fmt.Printf("the Sample Image is  %v\n", SampleImage)
+
+// 	file, err := os.Create("output/sample.png")
+// 	if err != nil {
+// 		fmt.Print("error while creating sample file")
+// 	}
+// 	png.Encode(file, SampleImage)
+
+// }
