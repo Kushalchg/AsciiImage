@@ -12,7 +12,7 @@ import (
 
 func main() {
 	image := LoadImage()
-	resizeImage := ResizeImage(image, 200)
+	resizeImage := ResizeImage(image, 100)
 
 	file, err := os.Create("output/resize.png")
 	if err != nil {
@@ -20,7 +20,6 @@ func main() {
 	}
 	defer file.Close()
 	png.Encode(file, resizeImage)
-
 	grayImage := ConvGrayScale(resizeImage)
 	// for gray image
 	grayFile, err := os.Create("output/gray.png")
@@ -34,9 +33,10 @@ func main() {
 	resultStr := MapAscii(grayImage)
 	saveToFile(resultStr, "output/result.txt")
 
+	AsciiToHTML(resultStr)
+
 }
 func LoadImage() image.Image {
-
 	file, err := os.Open("output/me.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
@@ -44,7 +44,6 @@ func LoadImage() image.Image {
 	defer file.Close()
 
 	img, err := png.Decode(file)
-
 	if err != nil {
 		fmt.Printf("error while decoding image %v\n", err)
 	}
@@ -55,18 +54,14 @@ func LoadImage() image.Image {
 func ResizeImage(img image.Image, width int) image.Image {
 	bounds := img.Bounds()
 	height := (bounds.Dy() * width) / bounds.Dx()
-
 	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
-
 	// Resize the mask image to match the target dimensions
 	draw.CatmullRom.Scale(newImage, newImage.Bounds(), img, bounds, draw.Over, nil)
-
 	return newImage
 }
 
 func ConvGrayScale(img image.Image) image.Image {
 	bound := img.Bounds()
-
 	grayImage := image.NewRGBA(bound)
 
 	for i := bound.Min.X; i < bound.Max.X; i++ {
@@ -79,15 +74,12 @@ func ConvGrayScale(img image.Image) image.Image {
 			// grayValue := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)
 			// color := color.Gray{uint8(grayValue / 256)}
 			grayImage.Set(i, j, color)
-
 		}
 	}
-
 	return grayImage
 }
 
 func MapAscii(img image.Image) []string {
-	// asciiChar := ".`'^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
 	asciiChar := "$@B%#*+=,.      "
 	bound := img.Bounds()
 	height, width := bound.Max.Y, bound.Max.X
@@ -100,10 +92,8 @@ func MapAscii(img image.Image) []string {
 			pixel := pixelValue.Y
 			asciiIndex := int(pixel) * (len(asciiChar) - 1) / 255
 			line += string(asciiChar[asciiIndex])
-
 		}
 		result[y] = line
-
 	}
 	return result
 }
@@ -121,16 +111,49 @@ func saveToFile(asciiArt []string, filename string) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func AsciiToImage(ascii []string) {
+func AsciiToHTML(ascii []string) {
+	HtmlFile, err := os.Create("output/format.html")
+	if err != nil {
+		fmt.Println("error while creatig html file")
+	}
 
-	// make tha ractangle with dimensions
-	// loop over the height of the image and width of maximum line
+	for lin, lines := range ascii {
+		htmlString := `<code> <span class="ascii" style="color: black; background: white;display:inline-block;white-space:pre;letter-spacing:0;line-height:1;font-family:'Consolas','BitstreamVeraSansMono','CourierNew',Courier,monospace;font-size:10px;border-width:1px;border-style:solid;border-color:lightgray;">`
+		if lin == 0 {
+			_, err := HtmlFile.WriteString(htmlString)
+			if err != nil {
+				fmt.Println("error while start writing into html file")
+			}
+		}
 
+		for _, char := range lines {
+			_, err := HtmlFile.WriteString(fmt.Sprintf("<span>%v</span>", string(char)))
+			if err != nil {
+				fmt.Println("error while writing into html file")
+			}
+		}
+		_, err := HtmlFile.WriteString("<br>")
+		if err != nil {
+			fmt.Println("error while writing into html file")
+		}
+		if lin == len(ascii)-1 {
+			_, err := HtmlFile.WriteString("</code>")
+			if err != nil {
+				fmt.Println("error while end writing into html file")
+			}
+
+		}
+	}
 }
+
+// func AsciiToImage(ascii []string) {
+// 	// make tha ractangle with dimensions
+// 	// loop over the height of the image and width of maximum line
+
+// }
 
 // func SampleImage() {
 // 	SampleImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
@@ -145,6 +168,7 @@ func AsciiToImage(ascii []string) {
 // 	if err != nil {
 // 		fmt.Print("error while creating sample file")
 // 	}
+// defer file.close()
 // 	png.Encode(file, SampleImage)
 
 // }
