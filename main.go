@@ -12,7 +12,8 @@ import (
 
 func main() {
 	image := LoadImage()
-	resizeImage := ResizeImage(image, 100)
+	// greater the image size more clear photo will produce
+	resizeImage := ResizeImage(image, 400)
 
 	file, err := os.Create("output/resize.png")
 	if err != nil {
@@ -119,9 +120,31 @@ func AsciiToHTML(ascii []string) {
 	if err != nil {
 		fmt.Println("error while creatig html file")
 	}
+	fmt.Printf("the height of file is %v", len(ascii))
+	fmt.Println()
 
 	for lin, lines := range ascii {
-		htmlString := `<code> <span class="ascii" style="color: black; background: white;display:inline-block;white-space:pre;letter-spacing:0;line-height:1;font-family:'Consolas','BitstreamVeraSansMono','CourierNew',Courier,monospace;font-size:10px;border-width:1px;border-style:solid;border-color:lightgray;">`
+		fmt.Printf("the widthof line is %v", len(lines))
+		fmt.Println()
+		htmlString := `<!DOCTYPE html>
+		<html lang="en"><head>
+   	 	<meta charset="UTF-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=0.5">
+    	<title>AsciiImage</title>
+		</head>
+		<body>
+			<code>
+		 		<span class="ascii" style="color: black;
+		  		background: white;
+		  		display:inline-block;
+		  		white-space:pre;
+		  		letter-spacing:0;
+		  		line-height:0.9;
+		  		font-family:'Consolas','BitstreamVeraSansMono','CourierNew',Courier,monospace;
+		  		font-size:10px;
+		  		border-width:1px;
+		  		border-style:solid;
+		  		border-color:lightgray;">`
 		if lin == 0 {
 			_, err := HtmlFile.WriteString(htmlString)
 			if err != nil {
@@ -140,7 +163,7 @@ func AsciiToHTML(ascii []string) {
 			fmt.Println("error while writing into html file")
 		}
 		if lin == len(ascii)-1 {
-			_, err := HtmlFile.WriteString("</code>")
+			_, err := HtmlFile.WriteString("</code></body></html>")
 			if err != nil {
 				fmt.Println("error while end writing into html file")
 			}
