@@ -8,12 +8,15 @@ import (
 	"os"
 
 	"golang.org/x/image/draw"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
 )
 
 func main() {
 	image := LoadImage()
 	// greater the image size more clear photo will produce
-	resizeImage := ResizeImage(image, 400)
+	resizeImage := ResizeImage(image, 200)
 
 	file, err := os.Create("output/resize.png")
 	if err != nil {
@@ -29,12 +32,12 @@ func main() {
 
 	}
 	defer file.Close()
-
 	png.Encode(grayFile, grayImage)
 	resultStr := MapAscii(grayImage)
 	saveToFile(resultStr, "output/result.txt")
 
 	AsciiToHTML(resultStr)
+	AsciiToImage(resultStr)
 
 }
 func LoadImage() image.Image {
@@ -81,7 +84,13 @@ func ConvGrayScale(img image.Image) image.Image {
 }
 
 func MapAscii(img image.Image) []string {
-	asciiChar := "$@B%#*+=,.      "
+	asciiChar := "$@B%#*+=,.       "
+	// runes := []rune(asciiChar)
+
+	// for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+	// 	runes[i], runes[j] = runes[j], runes[i]
+	// }
+
 	bound := img.Bounds()
 	height, width := bound.Max.Y, bound.Max.X
 	result := make([]string, height)
@@ -120,16 +129,12 @@ func AsciiToHTML(ascii []string) {
 	if err != nil {
 		fmt.Println("error while creatig html file")
 	}
-	fmt.Printf("the height of file is %v", len(ascii))
-	fmt.Println()
 
 	for lin, lines := range ascii {
-		fmt.Printf("the widthof line is %v", len(lines))
-		fmt.Println()
 		htmlString := `<!DOCTYPE html>
 		<html lang="en"><head>
    	 	<meta charset="UTF-8">
-    	<meta name="viewport" content="width=device-width, initial-scale=0.5">
+    	<meta name="viewport" content="width=device-width, initial-scale=0.8">
     	<title>AsciiImage</title>
 		</head>
 		<body>
@@ -172,12 +177,6 @@ func AsciiToHTML(ascii []string) {
 	}
 }
 
-// func AsciiToImage(ascii []string) {
-// 	// make tha ractangle with dimensions
-// 	// loop over the height of the image and width of maximum line
-
-// }
-
 // func SampleImage() {
 // 	SampleImage := image.NewRGBA(image.Rect(0, 0, 2, 2))
 // 	SampleImage.Set(0, 0, color.RGBA{255, 0, 0, 255})
@@ -195,3 +194,43 @@ func AsciiToHTML(ascii []string) {
 // 	png.Encode(file, SampleImage)
 
 // }
+
+func AsciiToImage(strArray []string) {
+	fmt.Printf("the size is %v", len(strArray))
+	// Create a larger image to fit the text
+	fontImage := image.NewRGBA(image.Rect(0, 0, 1400, len(strArray)*11))
+	// backgroundColor := color.RGBA{0, 0, 255, 255}
+	draw.Draw(fontImage, fontImage.Bounds(), image.White, image.Point{}, draw.Src)
+	// draw.Draw(fontImage, fontImage.Bounds(), image.NewUniform(backgroundColor), image.Point{}, draw.Src)
+
+	// Create the font face
+	drawconf := &font.Drawer{
+		Dst:  fontImage,
+		Src:  image.Black,
+		Face: basicfont.Face7x13,
+	}
+	// Draw the string
+	for i, line := range strArray {
+		drawconf.Dot = fixed.Point26_6{
+			X: fixed.Int26_6(10 * 64),          // 10 pixels from left
+			Y: fixed.Int26_6((20 + i*11) * 64), // Start at 20 pixels from top, then move down by lineHeight for each line
+		}
+
+		drawconf.DrawString(line)
+
+	}
+
+	// Create the output file
+	file, err := os.Create("output/custom.png")
+	if err != nil {
+		fmt.Println("Error while creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	// Encode and save the image
+	err = png.Encode(file, fontImage)
+	if err != nil {
+		fmt.Println("Error encoding image:", err)
+	}
+}
