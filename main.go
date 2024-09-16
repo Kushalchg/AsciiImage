@@ -41,7 +41,7 @@ func main() {
 
 }
 func LoadImage() image.Image {
-	file, err := os.Open("output/me.png")
+	file, err := os.Open("output/input.png")
 	if err != nil {
 		fmt.Printf("error while opening file %v\n", err)
 	}
@@ -125,7 +125,7 @@ func saveToFile(asciiArt []string, filename string) error {
 }
 
 func AsciiToHTML(ascii []string) {
-	HtmlFile, err := os.Create("output/format.html")
+	HtmlFile, err := os.Create("output/result.html")
 	if err != nil {
 		fmt.Println("error while creatig html file")
 	}
@@ -221,7 +221,7 @@ func AsciiToImage(strArray []string) {
 	}
 
 	// Create the output file
-	file, err := os.Create("output/custom.png")
+	file, err := os.Create("output/output.png")
 	if err != nil {
 		fmt.Println("Error while creating file:", err)
 		return
