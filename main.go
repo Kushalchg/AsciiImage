@@ -16,6 +16,7 @@ import (
 func main() {
 	image := LoadImage()
 	// greater the image size more clear photo will produce
+	//give the width accordingly
 	resizeImage := ResizeImage(image, 200)
 
 	file, err := os.Create("output/resize.png")
@@ -84,7 +85,7 @@ func ConvGrayScale(img image.Image) image.Image {
 }
 
 func MapAscii(img image.Image) []string {
-	asciiChar := "$@B%#*+=,.       "
+	asciiChar := "$@B%#*+=,. "
 	// runes := []rune(asciiChar)
 
 	// for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
